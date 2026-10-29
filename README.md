@@ -1,116 +1,95 @@
-# VideoTutor
+# YTutor
 
 **Watch. Ask. Understand.**
 
-VideoTutor is an AI learning assistant for YouTube educational videos. Paste a
-YouTube URL, watch the video, and ask questions about what the speaker is
-explaining at any moment. VideoTutor captures the exact playback timestamp,
-pulls the surrounding transcript, and asks Google Gemini to answer using that
-context -- not as a generic chatbot, but as a tutor grounded in exactly what
-was said.
+YTutor is a distraction-free, dark-mode AI learning companion for YouTube videos. Paste any YouTube link, watch the video on a single-screen workspace, and ask questions at any moment. YTutor captures your exact playback timestamp, pulls the surrounding transcript context, and delivers short, direct, filler-free explanations right beneath the player.
 
 ---
 
-## Features
+## Highlights
 
-- Paste any YouTube URL and get a real embedded player (official YouTube
-  IFrame Player API -- no downloading or re-hosting of video)
-- Real transcript extraction, with graceful handling of videos that have no
-  transcript
-- Ask a question at any point in the video; the exact player timestamp
-  (`player.getCurrentTime()`) is captured the instant you hit send
-- Timestamp-based context retrieval (±60s around the question) sent to
-  Gemini -- no vector DB, no embeddings, cheap and predictable for V1
-- Short-term conversation memory (follow-up questions understand what you
-  asked before), capped to control token usage
-- Gemini API key lives only on the backend -- never sent to the browser,
-  never in the JS bundle
-- Friendly error handling for invalid URLs, missing transcripts, private/
-  deleted videos, Gemini quota errors, and network failures
-- Responsive layout: video + chat side-by-side on desktop, stacked on mobile
-- Docker support for both services
+- **Single-Screen Dark UI** — Locked `100vh` layout over a live Perlin-noise fluid particle field (`ParticlesBackground`), keeping the video and AI tutor in view with zero page scrolling.
+- **3D Atom Intro & Thinking State** — Opens with a 3D multi-orbit `AtomLogo` splash (`IntroSplash`) that transitions into the app. Asking a question morphs the aurora input bar into a 3D rotating atom animation (`MorphOrb`) before unfolding a borderless, word-animated answer beside the follow-up bar.
+- **Exact Timestamp Context** — Captures `player.getCurrentTime()` at the moment you press send and retrieves a `±60s` transcript window around what is currently being discussed—while gracefully answering general or conversational questions even when captions are unavailable.
+- **Concise, Filler-Free Answers** — Prompted to skip fluff and give clear, direct explanations with inline formatting and short-term conversation memory.
+- **Flexible LLM Backend** — Switch seamlessly between **Google Gemini** (`google-genai` SDK) and **OpenAI-compatible APIs** (Groq, OpenRouter, Together, Ollama) via environment variables. API keys stay strictly on the FastAPI server.
 
 ---
 
 ## Architecture
 
-```
+```text
 Browser
-   |
-   | HTTPS
-   v
-React Frontend (Vite + TypeScript + Tailwind)
-   |
-   | REST API
-   v
+  │
+  ▼
+React Frontend (Vite + TypeScript + Tailwind CSS)
+  ├── IntroSplash & AtomLogo       (3D multi-orbit canvas intro)
+  ├── ParticlesBackground          (Perlin-noise flow-field canvas)
+  ├── VideoPlayer                  (Official YouTube IFrame Player API)
+  └── MorphOrb                     (Aurora pill input → 3D Atom thinking → borderless answer)
+  │
+  │ REST API (/api/video/analyze, /api/chat, /api/health)
+  ▼
 FastAPI Backend
-   |
-   +-- Transcript Service        (youtube-transcript-api, isolated & cached)
-   |
-   +-- Timestamp Context Service (±60s window around the question)
-   |
-   +-- Gemini Service            (google-genai SDK, the only module that
-   |                              talks to Gemini)
-   v
-Google Gemini API
+  ├── Transcript Service           (youtube-transcript-api, in-memory cache)
+  ├── Transcript Context Service   (±60s window around playback timestamp)
+  └── LLM / Gemini Service         (Google Gemini SDK or OpenAI-compatible HTTP client)
 ```
 
-The browser never talks to Gemini directly. Only `backend/app/services/
-gemini_service.py` holds the API key, read from an environment variable.
+> **Local Dev Note:** During `npm run dev`, `vite-transcript-plugin.ts` fetches YouTube captions directly from your local machine (`/local-api/analyze`) so local development works even when YouTube rate-limits cloud datacenter IPs.
 
 ---
 
 ## Tech Stack
 
-**Frontend:** React, TypeScript, Vite, Tailwind CSS, React Router, Lucide
-React, YouTube IFrame Player API
-
-**Backend:** Python, FastAPI, Pydantic, Uvicorn
-
-**AI:** Google Gemini API via the official `google-genai` SDK (model name is
-fully configurable via `GEMINI_MODEL` -- never hardcoded)
-
-**Transcript:** `youtube-transcript-api`, wrapped in a dedicated service so
-the extraction mechanism can be swapped later without touching the AI layer
-
-**Database:** None required for V1. The code is structured so PostgreSQL can
-be added later without a redesign.
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS, React Router, Lucide React, HTML5 Canvas (Perlin flow field & 3D Atom projection), YouTube IFrame Player API
+- **Backend:** Python 3.12, FastAPI, Pydantic Settings, Uvicorn, HTTPX
+- **AI Providers:** Google Gemini (`google-genai`) and OpenAI-compatible chat completions (Groq, OpenRouter, etc.)
+- **Transcripts:** `youtube-transcript-api` + local Vite Innertube caption middleware for dev
 
 ---
 
-## Folder Structure
+## Project Structure
 
-```
-videotutor/
+```text
+YTutor/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py
-│   │   ├── api/routes/{health,video,chat}.py
-│   │   ├── services/
-│   │   │   ├── transcript_service.py
-│   │   │   ├── transcript_context_service.py
-│   │   │   ├── gemini_service.py
-│   │   │   └── youtube_utils.py
-│   │   ├── schemas/{video,chat}.py
-│   │   └── core/{config,logging_config}.py
+│   │   ├── api/routes/          # health.py, video.py, chat.py
+│   │   ├── core/                # config.py, logging_config.py
+│   │   ├── schemas/             # video.py, chat.py
+│   │   └── services/
+│   │       ├── gemini_service.py
+│   │       ├── transcript_service.py
+│   │       ├── transcript_context_service.py
+│   │       └── youtube_utils.py
 │   ├── requirements.txt
 │   ├── .env.example
 │   └── Dockerfile
 ├── frontend/
 │   ├── src/
-│   │   ├── components/  (Navbar, Hero, YouTubeUrlInput, VideoPlayer,
-│   │   │                 ChatPanel, ChatMessage, ChatInput, LoadingState,
-│   │   │                 ErrorMessage)
-│   │   ├── pages/       (HomePage, WorkspacePage)
-│   │   ├── services/    (api.ts, youtube.ts)
-│   │   ├── hooks/       (useYouTubePlayer.ts, useChat.ts)
-│   │   └── types/       (video.ts, chat.ts, transcript.ts)
+│   │   ├── components/
+│   │   │   ├── AtomLogo.tsx
+│   │   │   ├── IntroSplash.tsx
+│   │   │   ├── ParticlesBackground.tsx
+│   │   │   ├── Hero.tsx
+│   │   │   ├── YouTubeUrlInput.tsx
+│   │   │   ├── VideoPlayer.tsx
+│   │   │   ├── LoadingState.tsx
+│   │   │   ├── ErrorMessage.tsx
+│   │   │   └── ui/
+│   │   │       └── ai-thiking-orb-and-input.tsx
+│   │   ├── hooks/               # useYouTubePlayer.ts, useChat.ts
+│   │   ├── pages/               # HomePage.tsx, WorkspacePage.tsx
+│   │   ├── services/            # api.ts, youtube.ts
+│   │   └── types/               # video.ts, chat.ts, transcript.ts
+│   ├── vite-transcript-plugin.ts
+│   ├── vite.config.ts
+│   ├── tailwind.config.js
 │   ├── package.json
-│   ├── .env.example
-│   ├── Dockerfile
-│   └── nginx.conf
+│   └── Dockerfile
 ├── docker-compose.yml
-├── .env.example
 └── README.md
 ```
 
@@ -118,186 +97,117 @@ videotutor/
 
 ## Local Setup
 
-### 1. Get a Gemini API key
-
-1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
-2. Create an API key (the free tier is sufficient for development)
-3. Pick a model name available on your account (e.g. `gemini-2.0-flash`)
-
-### 2. Backend
+### 1. Backend
 
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate       # Windows: venv\Scripts\activate
+python -m venv .venv
+# Windows PowerShell:
+.\.venv\Scripts\Activate.ps1
+# macOS / Linux:
+# source .venv/bin/activate
+
 pip install -r requirements.txt
-
 cp .env.example .env
-# edit .env and set GEMINI_API_KEY and GEMINI_MODEL
-
-uvicorn app.main:app --reload
 ```
 
-Backend runs at `http://localhost:8000`. Visit `http://localhost:8000/docs`
-for interactive API docs.
+Configure `backend/.env` for either **Gemini** or **Groq / OpenAI-compatible**:
 
-### 3. Frontend
+```env
+# Option A: Google Gemini
+LLM_PROVIDER=gemini
+GEMINI_API_KEY=your_gemini_api_key
+GEMINI_MODEL=gemini-flash-latest
+
+# Option B: Groq / OpenAI-compatible
+# LLM_PROVIDER=openai_compatible
+# LLM_BASE_URL=https://api.groq.com/openai/v1
+# LLM_MODEL=openai/gpt-oss-120b
+# LLM_API_KEY=your_groq_api_key
+
+FRONTEND_ORIGIN=http://localhost:5173
+PORT=8000
+```
+
+Start the API server:
+
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+### 2. Frontend
 
 ```bash
 cd frontend
 npm install
-
 cp .env.example .env
-# defaults to VITE_API_BASE_URL=http://localhost:8000, which is correct
-# for local development
+```
 
+Set `frontend/.env`:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000
+```
+
+Start the Vite dev server:
+
+```bash
 npm run dev
 ```
 
-Frontend runs at `http://localhost:5173`.
-
-### 4. Verify
-
-- `npm run build` and `npm run preview` should both succeed
-- `GET http://localhost:8000/api/health` should return `{"status": "ok"}`
-- Paste a YouTube URL with captions on the homepage and confirm the chat
-  responds using the video's transcript
+Open `http://localhost:5173`.
 
 ---
 
 ## Environment Variables
 
-**backend/.env**
+### `backend/.env`
+
+| Variable | Default | Description |
+|---|---|---|
+| `LLM_PROVIDER` | `openai_compatible` | `gemini` or `openai_compatible` |
+| `GEMINI_API_KEY` | `""` | Google Gemini API key (when `LLM_PROVIDER=gemini`) |
+| `GEMINI_MODEL` | `gemini-2.0-flash` | Gemini model ID (e.g. `gemini-flash-latest`, `gemini-3.8-flash`) |
+| `LLM_API_KEY` | `""` | API key for Groq / OpenRouter / compatible provider |
+| `LLM_BASE_URL` | `https://api.groq.com/openai/v1` | Base URL for OpenAI-compatible `/chat/completions` |
+| `LLM_MODEL` | `llama-3.3-70b-versatile` | Model ID for OpenAI-compatible provider (e.g. `openai/gpt-oss-120b`) |
+| `FRONTEND_ORIGIN` | `http://localhost:5173` | Comma-separated allowed CORS origins |
+| `PORT` | `8000` | Server port |
+| `ENVIRONMENT` | `development` | `development` or `production` |
+| `MAX_QUESTION_LENGTH` | `500` | Max characters per user question |
+| `MAX_CONVERSATION_HISTORY_MESSAGES` | `8` | Max prior messages included for follow-up context |
+| `TRANSCRIPT_CONTEXT_WINDOW_SECONDS` | `60` | Seconds before/after current timestamp included in prompt |
+
+### `frontend/.env`
 
 | Variable | Description |
 |---|---|
-| `GEMINI_API_KEY` | Your Gemini API key. Backend-only, never exposed. |
-| `GEMINI_MODEL` | Gemini model name, e.g. `gemini-2.0-flash`. |
-| `FRONTEND_ORIGIN` | Allowed CORS origin(s), comma-separated. |
-| `PORT` | Port the backend binds to. Defaults to `8000`. |
-| `ENVIRONMENT` | `development` or `production`. |
-| `MAX_QUESTION_LENGTH` | Max characters per question (default `500`). |
-| `MAX_CONVERSATION_HISTORY_MESSAGES` | Messages of history sent to Gemini (default `8`). |
-| `TRANSCRIPT_CONTEXT_WINDOW_SECONDS` | Seconds before/after the timestamp to include (default `60`). |
-
-**frontend/.env**
-
-| Variable | Description |
-|---|---|
-| `VITE_API_BASE_URL` | Backend URL. `http://localhost:8000` locally, your deployed backend URL in production. |
-
----
-
-## How It Works
-
-**Transcript extraction** (`transcript_service.py`): given a video ID, fetches
-the best available transcript (preferring English, falling back to whatever
-is available) via `youtube-transcript-api`, normalizes it into
-`{start, duration, text}` segments, and caches it in memory per process so
-re-analyzing the same video doesn't repeat the network call.
-
-**Timestamp tracking**: the frontend loads the official YouTube IFrame Player
-API. `useYouTubePlayer` wraps it and exposes `getCurrentTime()`. When the user
-hits Send, `useChat` calls `getCurrentTime()` at that exact instant -- never a
-stale value -- and formats it as `MM:SS` or `HH:MM:SS`.
-
-**Context retrieval**: given the captured timestamp, both the frontend
-(`useChat.ts`) and backend (`transcript_context_service.py`) implement the
-same simple rule -- take all transcript segments overlapping
-`[timestamp - 60s, timestamp + 60s]`, safely narrowing near the start/end of
-the video. No embeddings or vector search in V1.
-
-**Gemini request** (`gemini_service.py`): sends a fixed system instruction
-(VideoTutor's tutoring persona), the trimmed conversation history, the
-timestamped transcript context, and the question. One user question results
-in exactly one Gemini call -- nothing is sent while typing or on playback
-ticks.
+| `VITE_API_BASE_URL` | Backend base URL (`http://localhost:8000` locally, or your Render backend URL in production) |
 
 ---
 
 ## Deployment
 
-### Backend
+### Backend (Render / Railway / Docker)
 
-Any host that runs Python works (Render, Railway, Fly.io, a VM, etc.).
+1. Point the service to the `backend` root directory.
+2. Start command:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port $PORT
+   ```
+3. Add your LLM environment variables (`LLM_PROVIDER`, `GEMINI_API_KEY` / `GEMINI_MODEL` or `LLM_API_KEY` / `LLM_BASE_URL` / `LLM_MODEL`) and set `FRONTEND_ORIGIN` to your deployed frontend URL (comma-separated if allowing both localhost and production).
 
-```bash
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
+### Frontend (Vercel / Cloudflare Pages)
 
-Or build the provided `backend/Dockerfile`:
-
-```bash
-docker build -t videotutor-backend ./backend
-docker run -p 8000:8000 --env-file backend/.env videotutor-backend
-```
-
-Set `FRONTEND_ORIGIN` to your deployed frontend's exact origin (not `*`) in
-production.
-
-### Frontend
-
-Any static host works (Vercel, Netlify, Cloudflare Pages, S3 + CDN, etc.).
-
-```bash
-npm run build
-# deploy the frontend/dist directory
-```
-
-Set `VITE_API_BASE_URL` to your deployed backend's URL at build time. Or use
-the provided `frontend/Dockerfile`, which builds and serves the static
-bundle via nginx:
-
-```bash
-docker build --build-arg VITE_API_BASE_URL=https://your-backend.example.com -t videotutor-frontend ./frontend
-docker run -p 5173:80 videotutor-frontend
-```
-
-### Both together (local only)
-
-```bash
-cp .env.example .env   # fill in GEMINI_API_KEY
-docker compose up --build
-```
+1. Import the repository and set **Root Directory** to `frontend`.
+2. Build command: `npm run build` · Output directory: `dist`.
+3. Set `VITE_API_BASE_URL` to your deployed backend URL (e.g. `https://ytutor-backend.onrender.com`).
+4. Add SPA fallback routing (`/(.*) -> /index.html`) so direct `/watch/...` links resolve cleanly.
 
 ---
 
-## Security Notes
+## Security
 
-- `GEMINI_API_KEY` is read only in `backend/app/services/gemini_service.py`
-  and is never sent to the frontend, logged, or included in the built JS
-  bundle (verified during development: the production bundle contains no
-  reference to the key or the string "GEMINI").
-- CORS is restricted to `FRONTEND_ORIGIN`; do not set this to `*` in
-  production.
-- Request bodies are validated with Pydantic; question length, history
-  length, and transcript context size are all capped to control cost.
-- Logs never include the API key, full transcripts, or full conversation
-  histories -- only high-level events (request received, success/failure,
-  lengths/counts).
-
----
-
-## Known Limitations (V1)
-
-- No database or persistent accounts -- state lives only in the browser
-  session (React state) and an in-process transcript cache that resets on
-  backend restart.
-- Videos without any available captions/transcript cannot be tutored on;
-  the UI surfaces this clearly with a retry option.
-- Context retrieval is timestamp-only (±60s), not semantic -- a question
-  that references something said much earlier in the video may need the
-  user to scrub back before asking.
-- No streaming responses -- the chat waits for the full Gemini response.
-- Single-session conversation memory only; refreshing the page clears chat
-  history (the video and transcript can simply be reloaded).
-
-## Recommended Next Steps (V2)
-
-- Add chunking + embeddings + a vector store, and combine semantic
-  similarity with timestamp proximity for hybrid retrieval
-- Automatic video summaries, chapter detection, and key-concept extraction
-- Persist transcripts and conversations (PostgreSQL), add user accounts and
-  learning history
-- Streaming Gemini responses for a faster perceived reply
-- Redis-backed transcript cache shared across backend instances
+- API keys (`GEMINI_API_KEY`, `LLM_API_KEY`) live exclusively on the backend and are never bundled into frontend code or exposed to the browser.
+- `.env` files are git-ignored across both `frontend/` and `backend/`.
+- Strict Pydantic validation caps question length, conversation history depth, and CORS origins.
