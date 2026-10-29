@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import Hero from "../components/Hero";
-import Navbar from "../components/Navbar";
 import YouTubeUrlInput from "../components/YouTubeUrlInput";
 import { looksLikeYouTubeUrl } from "../services/youtube";
 
@@ -18,16 +17,12 @@ export default function HomePage() {
       return;
     }
 
-    // Full validation and transcript loading happens on the workspace page
-    // so the user gets clear progress states rather than a blocked landing
-    // page.
     navigate(`/watch/${encodeURIComponent(url)}`);
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
-      <Navbar />
-      <main className="flex-1">
+    <div className="flex h-screen flex-col overflow-hidden bg-transparent">
+      <main className="flex flex-1 flex-col items-center justify-center">
         <Hero>
           <div className="flex w-full flex-col items-center">
             <YouTubeUrlInput onSubmit={handleSubmit} />
@@ -35,9 +30,6 @@ export default function HomePage() {
           </div>
         </Hero>
       </main>
-      <footer className="border-t border-zinc-200 py-6 text-center text-xs text-zinc-400">
-        VideoTutor -- an AI learning assistant for YouTube educational videos.
-      </footer>
     </div>
   );
 }

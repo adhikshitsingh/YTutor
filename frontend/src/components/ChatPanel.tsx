@@ -18,9 +18,9 @@ export default function ChatPanel({ messages, onSend, isSending }: ChatPanelProp
   }, [messages]);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
-      <div className="border-b border-zinc-200 px-4 py-3">
-        <h2 className="text-sm font-semibold text-ink">AI Tutor</h2>
+    <div className="flex h-full flex-col overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/80 shadow-sm backdrop-blur">
+      <div className="border-b border-zinc-800 px-4 py-3">
+        <h2 className="text-sm font-semibold text-zinc-100">AI Tutor</h2>
       </div>
 
       <div
@@ -29,7 +29,7 @@ export default function ChatPanel({ messages, onSend, isSending }: ChatPanelProp
         aria-live="polite"
       >
         {messages.length === 0 ? (
-          <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-zinc-400">
+          <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-zinc-500">
             <MessageCircle className="h-6 w-6" aria-hidden="true" />
             <p>Ask a question about what's happening in the video right now.</p>
           </div>

@@ -1,9 +1,9 @@
+import { ArrowLeft } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import ChatPanel from "../components/ChatPanel";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import ErrorMessage from "../components/ErrorMessage";
 import LoadingState from "../components/LoadingState";
-import Navbar from "../components/Navbar";
+import MorphOrb from "../components/ui/ai-thiking-orb-and-input";
 import VideoPlayer from "../components/VideoPlayer";
 import { useChat } from "../hooks/useChat";
 import { useYouTubePlayer } from "../hooks/useYouTubePlayer";
@@ -29,8 +29,6 @@ export default function WorkspacePage() {
 
     try {
       setStage("validating");
-      // Brief perceptible stages -- the actual work happens in one backend
-      // call, but breaking the UI into stages avoids an unexplained pause.
       setStage("loading-transcript");
       const result = await analyzeVideo(originalUrl);
 
@@ -56,7 +54,7 @@ export default function WorkspacePage() {
     containerId: PLAYER_CONTAINER_ID,
   });
 
-  const { messages, isSending, sendQuestion } = useChat({
+  const { sendQuestion } = useChat({
     videoId: videoData?.videoId ?? "",
     videoTitle: videoData?.title,
     transcript: videoData?.transcript ?? [],
@@ -65,8 +63,7 @@ export default function WorkspacePage() {
 
   if (stage === "error") {
     return (
-      <div className="flex min-h-screen flex-col bg-paper">
-        <Navbar />
+      <div className="flex h-screen flex-col overflow-hidden bg-transparent">
         <main className="flex flex-1 flex-col items-center justify-center px-6">
           <ErrorMessage
             message={errorMessage ?? "We couldn't load this video."}
@@ -79,8 +76,7 @@ export default function WorkspacePage() {
 
   if (stage !== "ready" || !videoData) {
     return (
-      <div className="flex min-h-screen flex-col bg-paper">
-        <Navbar />
+      <div className="flex h-screen flex-col overflow-hidden bg-transparent">
         <main className="flex flex-1 flex-col items-center justify-center px-6">
           <LoadingState stage={stage} />
         </main>
@@ -89,16 +85,23 @@ export default function WorkspacePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper">
-      <Navbar />
-      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5 lg:items-start">
-          <div className="lg:col-span-3">
-            <VideoPlayer containerId={PLAYER_CONTAINER_ID} title={videoData.title} />
-          </div>
-          <div className="h-[70vh] lg:col-span-2 lg:h-[75vh]">
-            <ChatPanel messages={messages} onSend={sendQuestion} isSending={isSending} />
-          </div>
+    <div className="relative flex h-screen flex-col overflow-hidden bg-transparent">
+      <Link
+        to="/"
+        aria-label="Back to home"
+        className="fixed left-4 top-4 z-20 flex h-8 w-8 items-center justify-center rounded-full text-zinc-500 transition hover:bg-white/5 hover:text-zinc-200"
+      >
+        <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+      </Link>
+      <main className="mx-auto flex min-h-0 w-full max-w-5xl flex-1 flex-col items-center justify-center px-4 py-3 sm:px-6">
+        <div className="w-full shrink-0">
+          <VideoPlayer containerId={PLAYER_CONTAINER_ID} title={videoData.title} />
+        </div>
+        <div
+          style={{ width: "min(100%, 900px, max(620px, calc(66vh * 16 / 9)))" }}
+          className="mt-4 shrink-0"
+        >
+          <MorphOrb onSubmit={sendQuestion} />
         </div>
       </main>
     </div>

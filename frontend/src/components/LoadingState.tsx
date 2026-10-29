@@ -17,11 +17,11 @@ export default function LoadingState({ stage }: LoadingStateProps) {
 
   return (
     <div
-      className="mt-8 flex items-center justify-center gap-3 text-sm font-medium text-zinc-600"
+      className="mt-8 flex items-center justify-center gap-3 text-sm font-medium text-zinc-300"
       role="status"
       aria-live="polite"
     >
-      <Loader2 className="h-4 w-4 animate-spin text-indigo-600" aria-hidden="true" />
+      <Loader2 className="h-4 w-4 animate-spin text-indigo-400" aria-hidden="true" />
       {label}
     </div>
   );

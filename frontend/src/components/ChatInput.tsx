@@ -26,7 +26,7 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
   }
 
   return (
-    <div className="flex items-end gap-2 border-t border-zinc-200 p-3">
+    <div className="flex items-end gap-2 border-t border-zinc-800 p-3">
       <label htmlFor="chat-input" className="sr-only">
         Ask a question about the video
       </label>
@@ -39,13 +39,13 @@ export default function ChatInput({ onSend, disabled }: ChatInputProps) {
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Ask a question..."
-        className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-ink placeholder:text-zinc-400 focus:border-indigo-500 focus:bg-white focus:outline-none disabled:opacity-60"
+        className="max-h-32 min-h-[2.5rem] flex-1 resize-none rounded-xl border border-zinc-800 bg-zinc-950/60 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-indigo-500 focus:bg-zinc-900 focus:outline-none disabled:opacity-60"
       />
       <button
         onClick={submit}
         disabled={disabled || !value.trim()}
         aria-label="Send question"
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-600 text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
       >
         <Send className="h-4 w-4" aria-hidden="true" />
       </button>

@@ -6,18 +6,18 @@ interface HeroProps {
 
 export default function Hero({ children }: HeroProps) {
   return (
-    <section className="mx-auto flex max-w-3xl flex-col items-center px-6 pb-16 pt-20 text-center sm:pt-28">
-      <span className="mb-5 inline-flex items-center rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs font-medium text-indigo-700">
+    <section className="mx-auto flex max-w-2xl flex-col items-center px-6 py-4 text-center">
+      <span className="hero-step-1 mb-4 inline-flex items-center rounded-full border border-indigo-500/30 bg-indigo-950/60 px-3 py-1 text-xs font-medium text-indigo-300 backdrop-blur">
         Watch. Ask. Understand.
       </span>
-      <h1 className="text-4xl font-extrabold tracking-tight text-ink sm:text-5xl">
+      <h1 className="hero-step-2 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
         Learn anything from any YouTube video.
       </h1>
-      <p className="mt-5 max-w-xl text-balance text-lg leading-relaxed text-zinc-600">
+      <p className="hero-step-3 mt-4 max-w-lg text-balance text-base leading-relaxed text-zinc-400">
         Watch the video, ask questions at any moment, and get explanations based on exactly
         what is being discussed.
       </p>
-      <div className="mt-10 flex w-full justify-center">{children}</div>
+      <div className="hero-step-4 mt-8 flex w-full justify-center">{children}</div>
     </section>
   );
 }

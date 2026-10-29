@@ -5,10 +5,11 @@
 @layer base {
   html {
     font-family: "Inter", system-ui, sans-serif;
+    color-scheme: dark;
   }
 
   body {
-    @apply bg-paper text-ink antialiased;
+    @apply bg-black text-zinc-100 antialiased overflow-hidden;
   }
 
   :focus-visible {
@@ -18,11 +19,640 @@
 }
 
 @layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+  }
   .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: #d4d4d8;
+    background-color: rgba(255, 255, 255, 0.14);
     border-radius: 9999px;
   }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.28);
+  }
+  .scrollbar-thin::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* ───────────────────────── MorphOrb (.mo-*) styles ───────────────────────── */
+@property --angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes mo-spin {
+  to {
+    --angle: 360deg;
+  }
+}
+
+@keyframes mo-drift {
+  from {
+    transform: translateX(-14%);
+  }
+  to {
+    transform: translateX(14%);
+  }
+}
+
+@keyframes mo-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@keyframes mo-dot {
+  0%, 80%, 100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+
+@keyframes mo-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes mo-out {
+  from {
+    opacity: 1;
+    transform: none;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes mo-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+.app-reveal {
+  animation: mo-fade-in 0.4s ease-out both;
+}
+
+.hero-step-1 {
+  animation: hero-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both;
+}
+
+.hero-step-2 {
+  animation: hero-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+}
+
+.hero-step-3 {
+  animation: hero-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.28s both;
+}
+
+.hero-step-4 {
+  animation: hero-rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+@keyframes mo-shake-x {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+.mo-root {
+  position: relative;
+  width: 100%;
+  user-select: none;
+  color: #f4f4f5;
+}
+
+.mo-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 0px;
+  transition: gap 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mo-root[data-open]:not([data-loading]) .mo-row {
+  gap: 12px;
+}
+
+@media (min-width: 640px) {
+  .mo-row {
+    flex-direction: row;
+  }
+  .mo-root[data-open]:not([data-loading]) .mo-row {
+    gap: 20px;
+  }
+}
+
+/* Message Input Pill */
+.mo-pill {
+  position: relative;
+  width: min(480px, 100%);
+  max-width: 480px;
+  height: 48px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  transition:
+    width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.25s ease,
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (min-width: 640px) {
+  .mo-root[data-open]:not([data-loading]) .mo-pill {
+    width: min(330px, 40%);
+    max-width: 330px;
+  }
+}
+
+.mo-root[data-loading] .mo-pill {
+  width: 0px;
+  max-width: 0px;
+  height: 0px;
+  opacity: 0;
+  transform: scale(0.92);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.mo-pill[data-shake] {
+  animation: mo-shake-x 0.26s ease;
+}
+
+.mo-underglow {
+  position: absolute;
+  inset: -6px -14px -10px;
+  border-radius: inherit;
+  background: radial-gradient(60% 90% at 50% 80%, rgba(99, 102, 241, 0.26), rgba(168, 85, 247, 0.1) 55%, transparent 80%);
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.mo-surface {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(18, 18, 23, 0.86);
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 12px 32px -10px rgba(0, 0, 0, 0.65),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.mo-aurora {
+  position: absolute;
+  inset: 0;
+  filter: blur(20px);
+  pointer-events: none;
+}
+
+.mo-aurora i {
+  position: absolute;
+  width: 45%;
+  height: 160%;
+  top: -30%;
+  border-radius: 50%;
+  animation: mo-drift 5.5s ease-in-out infinite alternate;
+}
+
+.mo-aurora i:nth-child(1) {
+  left: 4%;
+  background: rgba(99, 102, 241, 0.2);
+}
+.mo-aurora i:nth-child(2) {
+  left: 28%;
+  background: rgba(168, 85, 247, 0.16);
+  animation-delay: -1.6s;
+}
+.mo-aurora i:nth-child(3) {
+  left: 52%;
+  background: rgba(56, 189, 248, 0.14);
+  animation-delay: -3.1s;
+}
+.mo-aurora i:nth-child(4) {
+  left: 72%;
+  background: rgba(255, 255, 255, 0.1);
+  animation-delay: -4.4s;
+}
+
+.mo-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(
+    from var(--angle, 0deg),
+    rgba(255, 255, 255, 0.12),
+    rgba(129, 140, 248, 0.5),
+    rgba(192, 132, 252, 0.4),
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.12)
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: mo-spin 6s linear infinite;
+  pointer-events: none;
+}
+
+.mo-pill[data-typing] .mo-ring {
+  animation-duration: 2.5s;
+}
+
+.mo-pill[data-flash] .mo-ring {
+  background: rgba(248, 113, 113, 0.75);
+}
+
+.mo-input {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 7px 0 15px;
+  z-index: 2;
+}
+
+.mo-spark {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: #a5b4fc;
+  opacity: 0.9;
+}
+
+.mo-field {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: #f4f4f5;
+  font-size: 0.875rem;
+  letter-spacing: -0.01em;
+}
+
+.mo-field::placeholder {
+  color: #71717a;
+}
+
+.mo-field:focus-visible {
+  outline: none;
+}
+
+.mo-send {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  color: #71717a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.mo-send svg {
+  width: 15px;
+  height: 15px;
+}
+
+.mo-send[data-ready] {
+  background: #4f46e5;
+  border-color: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+}
+
+.mo-send[data-ready]:hover {
+  background: #6366f1;
+  transform: translateY(-1px);
+}
+
+/* Companion Side Area (Thinking Atom + Borderless Answer) */
+.mo-side {
+  --oAnswer: 0;
+  position: relative;
+  width: 100%;
+  max-width: 0;
+  height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition:
+    flex 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    max-width 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.3s ease;
+}
+
+.mo-root[data-open] .mo-side {
+  max-width: 100%;
+  height: 138px;
+  opacity: 1;
+}
+
+@media (min-width: 640px) {
+  .mo-side {
+    flex: 0 0 0px;
+    height: 48px;
+  }
+  .mo-root[data-open] .mo-side {
+    flex: 1 1 0%;
+    height: 138px;
+  }
+}
+
+.mo-think-stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.mo-orb-box {
+  position: relative;
+  width: 136px;
+  height: 136px;
+  flex-shrink: 0;
+}
+
+.mo-orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 152px;
+  height: 152px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.mo-pulse {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  opacity: 0;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.mo-status {
+  --sOp: 0;
+  --sTy: 5;
+  position: relative;
+  width: 96px;
+  height: 24px;
+  transform: translateY(calc(var(--sTy, 0) * 1px));
+  opacity: var(--sOp, 0);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  pointer-events: none;
+}
+
+.mo-lab {
+  position: absolute;
+  left: 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #d4d4d8;
+}
+
+.mo-lab.mo-in {
+  animation: mo-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.mo-lab.mo-out {
+  animation: mo-out 0.22s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.mo-lab-t {
+  background: linear-gradient(90deg, #a1a1aa 0%, #ffffff 50%, #a1a1aa 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: mo-shimmer 2.2s linear infinite;
+}
+
+.mo-lab-done {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.mo-dots {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 2px;
+}
+
+.mo-dots i {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #d4d4d8;
+  display: inline-block;
+  animation: mo-dot 1.2s infinite ease-in-out;
+}
+
+.mo-dots i:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.mo-dots i:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Borderless floating answer area with subtle scrollbar & soft edge mask */
+.mo-answer-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  opacity: var(--oAnswer, 0);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.mo-root[data-phase="answered"] .mo-answer-wrap {
+  pointer-events: auto;
+}
+
+.mo-answer {
+  width: 100%;
+  max-height: 134px;
+  padding: 10px 28px 10px 8px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  outline: none;
+  background: radial-gradient(closest-side, rgba(0, 0, 0, 0.65) 45%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0px, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  mask-image: linear-gradient(to bottom, transparent 0px, #000 10px, #000 calc(100% - 10px), transparent 100%);
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+.mo-answer::-webkit-scrollbar {
+  width: 3px;
+}
+
+.mo-answer::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mo-answer::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+}
+
+.mo-answer::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.mo-answer::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.mo-root[data-phase="answered"] .mo-answer {
+  user-select: text;
+}
+
+.mo-a-body {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: #f4f4f5;
+  text-align: left;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.85);
+}
+
+.mo-w {
+  display: inline-block;
+  opacity: 0;
+  will-change: opacity, transform, filter;
+}
+
+.mo-dismiss {
+  position: absolute;
+  top: 6px;
+  right: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.35);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+  z-index: 5;
+}
+
+.mo-dismiss:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.mo-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mo-debug {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(24, 24, 27, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.75rem;
+  color: #a1a1aa;
+  z-index: 10;
+}
+
+.mo-chip {
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(99, 102, 241, 0.2);
+  color: #a5b4fc;
+  font-family: monospace;
 }

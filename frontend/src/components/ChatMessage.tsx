@@ -18,10 +18,10 @@ const markdownComponents = {
   h3: (props: any) => <h4 className="mb-1 mt-2 text-sm font-semibold first:mt-0" {...props} />,
   strong: (props: any) => <strong className="font-semibold" {...props} />,
   code: (props: any) => (
-    <code className="rounded bg-zinc-100 px-1 py-0.5 text-xs" {...props} />
+    <code className="rounded bg-zinc-900 px-1 py-0.5 text-xs text-zinc-200" {...props} />
   ),
   pre: (props: any) => (
-    <pre className="mb-2 overflow-x-auto rounded-lg bg-zinc-900 p-3 text-xs text-zinc-100 last:mb-0" {...props} />
+    <pre className="mb-2 overflow-x-auto rounded-lg bg-zinc-950 p-3 text-xs text-zinc-100 last:mb-0" {...props} />
   ),
   table: (props: any) => (
     <div className="mb-2 overflow-x-auto last:mb-0">
@@ -29,11 +29,11 @@ const markdownComponents = {
     </div>
   ),
   th: (props: any) => (
-    <th className="border border-zinc-200 bg-zinc-50 px-2 py-1 text-left font-medium" {...props} />
+    <th className="border border-zinc-700 bg-zinc-900 px-2 py-1 text-left font-medium" {...props} />
   ),
-  td: (props: any) => <td className="border border-zinc-200 px-2 py-1" {...props} />,
+  td: (props: any) => <td className="border border-zinc-700 px-2 py-1" {...props} />,
   a: (props: any) => (
-    <a className="text-indigo-600 underline hover:text-indigo-700" target="_blank" rel="noreferrer" {...props} />
+    <a className="text-indigo-400 underline hover:text-indigo-300" target="_blank" rel="noreferrer" {...props} />
   ),
 };
 
@@ -47,12 +47,12 @@ export default function ChatMessage({ message }: ChatMessageProps) {
           isUser
             ? "bg-indigo-600 text-white"
             : message.status === "error"
-            ? "border border-red-200 bg-red-50 text-red-700"
-            : "border border-zinc-200 bg-white text-ink"
+            ? "border border-red-500/30 bg-red-950/60 text-red-300"
+            : "border border-zinc-700/80 bg-zinc-800/80 text-zinc-100"
         }`}
       >
         {message.status === "sending" ? (
-          <span className="flex items-center gap-2 text-zinc-500">
+          <span className="flex items-center gap-2 text-zinc-400">
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
             Thinking...
           </span>

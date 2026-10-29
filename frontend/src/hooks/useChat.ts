@@ -35,9 +35,9 @@ export function useChat({ videoId, videoTitle, transcript, getCurrentTime }: Use
   const [isSending, setIsSending] = useState(false);
 
   const sendQuestion = useCallback(
-    async (question: string) => {
+    async (question: string): Promise<string> => {
       const trimmed = question.trim();
-      if (!trimmed || isSending) return;
+      if (!trimmed || isSending) return "";
 
       // Capture the exact YouTube player time at the moment Send is
       // pressed -- not a stale value from earlier in the render cycle.
@@ -72,10 +72,15 @@ export function useChat({ videoId, videoTitle, transcript, getCurrentTime }: Use
           .slice(-MAX_HISTORY_MESSAGES)
           .map((m) => ({ role: m.role, content: m.content }));
 
+        const concisePrompt =
+          trimmed.length <= 420
+            ? `${trimmed}\n(Keep the explanation short and simple; skip filler words.)`
+            : trimmed;
+
         const response = await askQuestion({
           videoId,
           timestamp: timestampSeconds,
-          question: trimmed,
+          question: concisePrompt,
           videoTitle,
           transcriptContext: context,
           conversationHistory: history,
@@ -86,12 +91,14 @@ export function useChat({ videoId, videoTitle, transcript, getCurrentTime }: Use
             m.id === pendingId ? { ...m, content: response.answer, status: "done" } : m
           )
         );
+        return response.answer;
       } catch (err) {
         const message =
           err instanceof ApiError ? err.message : "Something went wrong. Please try again.";
         setMessages((prev) =>
           prev.map((m) => (m.id === pendingId ? { ...m, content: message, status: "error" } : m))
         );
+        return message;
       } finally {
         setIsSending(false);
       }
