@@ -27,6 +27,9 @@ class Settings(BaseSettings):
     # CORS
     frontend_origin: str = "http://localhost:5173"
 
+    # Transcript provider (youtube-transcript.ai)
+    transcript_api_key: str = ""
+
     # Server
     port: int = 8000
     environment: str = "development"
@@ -40,7 +43,11 @@ class Settings(BaseSettings):
     def allowed_origins(self) -> List[str]:
         # Support a comma separated list in FRONTEND_ORIGIN for multiple
         # deployed frontends (e.g. staging + production).
-        return [origin.strip() for origin in self.frontend_origin.split(",") if origin.strip()]
+        return [
+            origin.strip().rstrip("/")
+            for origin in self.frontend_origin.split(",")
+            if origin.strip()
+        ]
 
 
 @lru_cache

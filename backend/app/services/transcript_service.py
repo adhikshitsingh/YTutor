@@ -16,6 +16,7 @@ import re
 
 import httpx
 
+from app.core.config import get_settings
 from app.core.logging_config import get_logger
 from app.schemas.video import TranscriptSegment
 
@@ -79,10 +80,13 @@ class TranscriptService:
         )
 
         url = f"https://youtube-transcript.ai/transcript/{video_id}.txt"
+        api_key = get_settings().transcript_api_key.strip()
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 
         try:
             response = httpx.get(
                 url,
+                headers=headers,
                 timeout=20.0,
                 follow_redirects=True,
             )
@@ -114,9 +118,10 @@ class TranscriptService:
                     "Could not parse the transcript returned by the provider."
                 )
 
+            lang_match = re.search(r"^Language:\s*([a-zA-Z-]+)", text, re.MULTILINE)
             result = TranscriptResult(
                 segments=segments,
-                language=None,
+                language=lang_match.group(1) if lang_match else None,
             )
 
             self._cache.set(video_id, result)
@@ -208,17 +213,24 @@ class TranscriptService:
             return None
 
     @staticmethod
-    def _parse_transcript(text: str) -> List[TranscriptSegment]:
+    def _parse_timestamp_seconds(hours: Optional[str], minutes: str, seconds: str) -> float:
+        total = int(minutes) * 60 + float(seconds)
+        if hours is not None:
+            total += int(hours) * 3600
+        return total
+
+    @classmethod
+    def _parse_transcript(cls, text: str) -> List[TranscriptSegment]:
         """
         Parse youtube-transcript.ai timestamped transcript text.
 
         Example:
             [0:02] Hello everyone
-            [0:15] Welcome to the video
+            [1:02:15] Welcome to the video
         """
 
         pattern = re.compile(
-            r"\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*?)(?=\n\[\d+:\d+(?:\.\d+)?\]|\Z)",
+            r"\[(?:(\d+):)?(\d+):(\d+(?:\.\d+)?)\]\s*(.*?)(?=\n\[(?:\d+:)?\d+:\d+(?:\.\d+)?\]|\n---|\n#|\Z)",
             re.DOTALL,
         )
 
@@ -227,12 +239,12 @@ class TranscriptService:
         segments: List[TranscriptSegment] = []
 
         for index, match in enumerate(matches):
-            minutes = int(match.group(1))
-            seconds = float(match.group(2))
-            start = minutes * 60 + seconds
+            start = cls._parse_timestamp_seconds(
+                match.group(1), match.group(2), match.group(3)
+            )
 
             transcript_text = " ".join(
-                match.group(3).split()
+                match.group(4).split()
             ).strip()
 
             if not transcript_text:
@@ -241,11 +253,9 @@ class TranscriptService:
             # Calculate duration from the next timestamp.
             if index + 1 < len(matches):
                 next_match = matches[index + 1]
-
-                next_minutes = int(next_match.group(1))
-                next_seconds = float(next_match.group(2))
-
-                next_start = next_minutes * 60 + next_seconds
+                next_start = cls._parse_timestamp_seconds(
+                    next_match.group(1), next_match.group(2), next_match.group(3)
+                )
                 duration = max(0.1, next_start - start)
             else:
                 # Last segment: give it a small fallback duration.
