@@ -44,7 +44,14 @@ async function request<T>(path: string, options: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export function analyzeVideo(youtubeUrl: string): Promise<VideoAnalyzeResponse> {
+export async function analyzeVideo(youtubeUrl: string): Promise<VideoAnalyzeResponse> {
+  // Dev: transcript is fetched by the local Vite server (home IP isn't blocked by YouTube).
+  if (import.meta.env.DEV) {
+    const res = await fetch(`/local-api/analyze?url=${encodeURIComponent(youtubeUrl)}`);
+    const body = await res.json().catch(() => ({}));
+    if (res.ok) return body as VideoAnalyzeResponse;
+    throw new ApiError(body.detail || "Something went wrong.", res.status);
+  }
   return request<VideoAnalyzeResponse>("/api/video/analyze", {
     method: "POST",
     body: JSON.stringify({ youtubeUrl }),
