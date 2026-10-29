@@ -11,6 +11,11 @@ export class ApiError extends Error {
   }
 }
 
+/** Wake the free-tier backend early so the first real request isn't slow. */
+export function wakeBackend(): void {
+  fetch(`${API_BASE_URL}/api/health`).catch(() => {});
+}
+
 async function request<T>(path: string, options: RequestInit): Promise<T> {
   let response: Response;
   try {
